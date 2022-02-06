@@ -14,19 +14,33 @@ from characters import Character as Charac
 from characters import LanguageC,LanguageJava,LanguagePython
 from playerView import getBoardEmbed, boardView
 
+helpEmbed = discord.Embed(title="HELPPPPP", color=0xFFFFFF)
+helpEmbed.add_field(name='Command List:', value="hax.character\nhax.squashbugs\nhax.shop\nhax.buy\nhax.ping")
+commandHelpStuff = {
+    "character": "`hax.character (user id)`\nDisplays your character and its stats",
+    "squashbugs": "`hax.squashbugs`\nSquash some bugs to level up your character",
+    "shop": "`hax.shop`\nOpen the shop menu",
+    "buy": "`hax.buy <item name>`\nBuy things from the shop",
+    "ping": "`hax.ping`\nPong!"
+}
+
+class helpCommandHelper(commands.HelpCommand):
+    def __init__(self):
+        super().__init__()
+    async def send_bot_help(self, mapping):
+        await self.get_destination().send('',embed=helpEmbed)
+    async def send_command_help(self, command):
+        bonkers = discord.Embed(title=f'Help for: **hax.{command.qualified_name}**', description=commandHelpStuff[command.qualified_name])
+        bonkers.set_footer(text="() indicate optional parameters\n<> indicate required parameters")
+        await self.get_destination().send('',embed=bonkers)
+
 class hackBot(commands.Bot):
     def __init__(self):
-        super().__init__(command_prefix=commands.when_mentioned_or("hax."))
+        super().__init__(command_prefix=commands.when_mentioned_or("hax."), help_command=helpCommandHelper())
     async def on_ready(self):
         print(f"Logged in as {self.user}")
 
 client = hackBot()
-
-tar = 445010725862244350
-#rows = curse.execute("SELECT gold FROM invs WHERE uid=?", [445010725862244350]).fetchall()
-#rows2 = curse.execute("SELECT uid, gold, stuff FROM invs").fetchall()
-#print(rows)
-#print(rows2)
 
 def fromInvGetChar(uid: int):
     squelch = sqlite3.connect("inventories.db")
@@ -171,7 +185,7 @@ async def character(ctx: commands.Context, *args):
     squelch.close()
 
 @client.command()
-async def testplay(ctx: commands.Context):
+async def squashbugs(ctx: commands.Context):
     thing = fromInvGetChar(ctx.author.id)
     cur = Charac(vals=thing[0])
     board = {}

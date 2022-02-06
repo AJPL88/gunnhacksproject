@@ -95,8 +95,8 @@ class boardButton(discord.ui.Button['boardView']):
             coins = 0
             exp = 0
             for i in range(view.bugsSquashed):
-                coins += random.randint(4,7)
-                exp += random.randint(5,15)
+                coins += random.randint(10,20)
+                exp += random.randint(5,20)
             view.charac.addExp(exp)
             print(view.charac.expDisplay())
             squelch = sqlite3.connect('inventories.db')
