@@ -1,4 +1,4 @@
-from email.mime import base
+import math
 import re
 # Character is base for all classes
 # HP stat
@@ -29,9 +29,24 @@ import re
 
 def expToNextLevel(clevel):
     if clevel < 40:
-        return round((5000 / (1 + ( 2.7182818285 ** ( -1 * (clevel-41)/10)))) + 10.069)
+        return round((5000 / (1 + (math.e ** ( -1 * (clevel-41)/10)))) + 10.069)
     else:
         return 125*clevel - 2505
+
+# \operatorname{floor}\left(\frac{100}{1+e^{-\frac{x}{20}}}-40\right)
+# \operatorname{floor}\left(\frac{98}{1+e^{-\frac{x}{18}}}-37\right)
+# \operatorname{floor}\left(\frac{101}{1+e^{-\frac{x}{29}}}-41\right)
+def hpScaling(level,lang):
+    if lang == 'C':
+        return math.floor(100 / (1 + (math.e ** ( -1 * (level / 20)))) - 40)
+    elif lang == 'Java':
+        return math.floor(98 / (1 + (math.e ** (-1 * (level / 18)))) - 37)
+    elif lang == 'Python':
+        return math.floor(101 / (1 + (math.e ** (-1 * (level / 29)))) - 41)
+
+#\operatorname{floor}\left(4\left(e^{x^{0.21}}\right)+10\right)-4
+def defScaling(level):
+    return math.floor(4 * (math.e ** (level ** 0.21)) + 10) - 4
 
 class Character():
     def __init__(self,vals="",baseStats=""):
