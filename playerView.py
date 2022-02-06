@@ -7,9 +7,17 @@ from typing import List
 from discord.ext import commands
 from characters import Character,hpScaling,Enemy
 
+sprites = {
+    'W': ':black_medium_square:',
+    'O': ':white_medium_square:',
+    'C': ':heart:',
+    'E': ':zombie:'
+}
+
 # W: wall
 # O: open
 # E: enemy
+# C: chest
 
 def getBars(percentage, numcharas):
     return '[' + '=' * round(percentage * numcharas) + ' ' * (numcharas-round(percentage*numcharas)) + ']'
@@ -17,12 +25,12 @@ def getBars(percentage, numcharas):
 def getBoardEmbed(ctx: commands.Context, chara: Character, charaPos: tuple, board: dict, failed = False):
     if not failed:
         cur = ''
-        for i in range(7):
-            for j in range(7):
-                if i == 3 and j == 3:
+        for i in range(-3,4):
+            for j in range(-3,4):
+                if i == 0 and j == 0:
                     cur = cur + ":person_bald:"
                 else:
-                    cur = cur + ':black_medium_square:'
+                    cur = cur + sprites[board[(charaPos[0]+i,charaPos[1]+j)]]
             cur = cur + '\n'
         embeda = discord.Embed(title="Test Game", description=f"HP: {chara.health}/{hpScaling(chara.level,chara.character)}\n{getBars(chara.health / hpScaling(chara.level,chara.character), 15)}\n" + cur, color=0xFF0000)
         embeda.set_footer(text=f"{chara.expDisplay()}")
@@ -33,12 +41,12 @@ def getBoardEmbed(ctx: commands.Context, chara: Character, charaPos: tuple, boar
         return embeda
 
 emo = {
-    'w': discord.PartialEmoji(name='\N{UPWARDS BLACK ARROW}'),
-    'a': discord.PartialEmoji(name='\N{LEFTWARDS BLACK ARROW}'),
-    's': discord.PartialEmoji(name='right_arrow',id=891019405746655253),
-    'd': discord.PartialEmoji(name='\N{DOWNWARDS BLACK ARROW}'),
-    't': discord.PartialEmoji(name='\N{CROSSED SWORDS}'),
-    'e': discord.PartialEmoji(name='\N{DOUBLE EXCLAMATION MARK}')
+    (1,0): discord.PartialEmoji(name='\N{UPWARDS BLACK ARROW}'),
+    (0,1): discord.PartialEmoji(name='\N{LEFTWARDS BLACK ARROW}'),
+    (2,1): discord.PartialEmoji(name='right_arrow',id=891019405746655253),
+    (1,1): discord.PartialEmoji(name='\N{DOWNWARDS BLACK ARROW}'),
+    (0,0): discord.PartialEmoji(name='\N{CROSSED SWORDS}'),
+    (2,0): discord.PartialEmoji(name='\N{DOUBLE EXCLAMATION MARK}')
 }
 
 class boardButton(discord.ui.Button['boardView']):
@@ -52,7 +60,7 @@ class boardButton(discord.ui.Button['boardView']):
             elif x == 2:
                 state = 'q'
         try:
-            self.emoji = emo[state]
+            self.emoji = emo[(x,y)]
             self.label = None
         except:
             print(traceback.format_exc())
@@ -67,11 +75,11 @@ class boardButton(discord.ui.Button['boardView']):
         view.clear_items()
         if view.charac.health > 0:
             view.add_item(boardButton(0,0,'t','t' not in view.validmoves))
-            view.add_item(boardButton(0,0,'w','w' not in view.validmoves))
-            view.add_item(boardButton(0,0,'i','i' not in view.validmoves))
-            view.add_item(boardButton(0,0,'a','a' not in view.validmoves))
-            view.add_item(boardButton(0,0,'s','s' not in view.validmoves))
-            view.add_item(boardButton(0,0,'d','d' not in view.validmoves))
+            view.add_item(boardButton(1,0,'w','w' not in view.validmoves))
+            view.add_item(boardButton(2,0,'i','i' not in view.validmoves))
+            view.add_item(boardButton(0,1,'a','a' not in view.validmoves))
+            view.add_item(boardButton(1,1,'s','s' not in view.validmoves))
+            view.add_item(boardButton(2,1,'d','d' not in view.validmoves))
             await interaction.response.edit_message(content='',embed=getBoardEmbed(view.ctx, view.charac, view.charaPosition, view.board))
         else:
             await interaction.response.edit_message(content='',embed=getBoardEmbed(view.ctx, view.charac, view.charaPosition, view.board))
@@ -91,11 +99,11 @@ def getValid(pos: tuple, board: dict):
         vm = vm.replace('a','')
     if board[(pos[0],pos[1]+1)] != 'O':
         vm = vm.replace('s','')
-    if board[(pos[0],pow[1]-1)] != 'O':
+    if board[(pos[0],pos[1]-1)] != 'O':
         vm = vm.replace('w','')
-    if 'E' not in [board[(pos[0]+1,pos[1])], board[(pos[0]-1,pos[1])], board[(pos[0],pos[1]+1)], board[(pos[0],pow[1]-1)]]:
+    if 'E' not in [board[(pos[0]+1,pos[1])], board[(pos[0]-1,pos[1])], board[(pos[0],pos[1]+1)], board[(pos[0],pos[1]-1)]]:
         vm = vm.replace('t','')
-    if 'C' not in [board[(pos[0]+1,pos[1])], board[(pos[0]-1,pos[1])], board[(pos[0],pos[1]+1)], board[(pos[0],pow[1]-1)]]:
+    if 'C' not in [board[(pos[0]+1,pos[1])], board[(pos[0]-1,pos[1])], board[(pos[0],pos[1]+1)], board[(pos[0],pos[1]-1)]]:
         vm = vm.replace('i','')
     return vm
 
@@ -111,7 +119,7 @@ class boardView(discord.ui.View):
         # t: attack
         # i: interact
         self.butlist = [
-            ['t','w','i']
+            ['t','w','i'], 
             ['a','s','d']
         ]
         self.validmoves = getValid(self.charaPosition,self.board)
@@ -141,3 +149,24 @@ class boardView(discord.ui.View):
             elif enemyLoc == 3:
                 enemyLoc = (self.charaPosition[0], self.charaPosition[1] - 1)
             self.charac.fight(Enemy(self.charac,enemyLoc))
+        elif move == 'e':
+            chestLoc = [self.board[(self.charaPosition[0]+1,self.charaPosition[1])], self.board[(self.charaPosition[0]-1,self.charaPosition[1])], self.board[(self.charaPosition[0],self.charaPosition[1]+1)], self.board[(self.charaPosition[0],self.charaPosition[1]-1)]].index('C')
+            if chestLoc == 0:
+                chestLoc = (self.charaPosition[0] + 1, self.charaPosition[1])
+            elif chestLoc == 1:
+                chestLoc = (self.charaPosition[0] - 1, self.charaPosition[1])
+            elif chestLoc == 2:
+                chestLoc = (self.charaPosition[0], self.charaPosition[1] + 1)
+            elif chestLoc == 3:
+                chestLoc = (self.charaPosition[0], self.charaPosition[1] - 1)
+            self.board[chestLoc] = 'O'
+            self.charac.health += 3
+            if self.charac.health > hpScaling(self.charac.level,self.charac.character):
+                self.charac.health = hpScaling(self.charac.level,self.charac.character)
+        if self.charac.health <= 0:
+            self.stop()
+            return False
+        for i in range(-3,4):
+            for j in range(-3,4):
+                if (self.charaPosition[0]+i,self.charaPosition[1]+j) not in self.board.keys():
+                    self.board[(self.charaPosition[0]+i,self.charaPosition[1]+j)] = random.choices(['W','O','E'],weights=[3,5,2],k=1)[0]

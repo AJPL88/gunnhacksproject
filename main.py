@@ -141,13 +141,13 @@ async def testplay(ctx: commands.Context):
     for i in range(-3, 4):
         for j in range(-3, 4):
             if (i,j) != (0,0):
-                board[(i,j)] = random.choices(['W','O','E'],weights=[1,7,2],k=1)[0]
+                board[(i,j)] = random.choices(['W','O','E'],weights=[3,5,2],k=1)[0]
     for i in [-1,0,1]:
         for j in [-1,0,1]:
             board[(i,j)] = 'O'
     embeda = getBoardEmbed(ctx, cur, (0,0), board)
-    #await ctx.send("",embed=embeda,view=boardView(ctx,cur,board))
-    await ctx.send("",embed=embeda)
+    await ctx.send("",embed=embeda,view=boardView(ctx,cur,board))
+    #await ctx.send("",embed=embeda)
 
 @client.command()
 async def adminsetchar(ctx: commands.Context, uid: str, val: str):
