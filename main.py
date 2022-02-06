@@ -15,13 +15,15 @@ from characters import LanguageC,LanguageJava,LanguagePython
 from playerView import getBoardEmbed, boardView, getCampaignEmbed, campaignBoardView
 
 helpEmbed = discord.Embed(title="HELPPPPP", color=0xFFFFFF)
-helpEmbed.add_field(name='Command List:', value="hax.character\nhax.squashbugs\nhax.shop\nhax.buy\nhax.ping")
+helpEmbed.add_field(name='Command List:', value="hax.character\nhax.squashbugs\nhax.shop\nhax.buy\nhax.ping\nhax.tutorial")
+helpEmbed.set_footer(text="If this is your first time using this bot, do hax.character!")
 commandHelpStuff = {
     "character": "`hax.character (user id)`\nDisplays your character and its stats",
     "squashbugs": "`hax.squashbugs`\nSquash some bugs to level up your character",
     "shop": "`hax.shop`\nOpen the shop menu",
     "buy": "`hax.buy <item name>`\nBuy things from the shop",
-    "ping": "`hax.ping`\nPong!"
+    "ping": "`hax.ping`\nPong!",
+    "tutorial": "`hax.tutorial`\nPlay the Tutorial Stage!"
 }
 
 class helpCommandHelper(commands.HelpCommand):
