@@ -184,6 +184,45 @@ class Enemy():
             batlog = batlog + str(random.choices([f"{chara.character} found an ULTRA RARE GRAPHICS CARD!\n",f"{chara.character} found a " + str(random.choice(["keyboard", "monitor", "mouse"])) + "!\n",""],weights=[1,20,70])[0])
         return batlog
 
+class campaignEnemy():
+    def __init__(self, name: str, chara: Character, stats: list):
+        self.name = name
+        self.hp = stats[0]
+        self.atk = stats[1]
+        self.speed = stats[2]
+    def fight(self, chara: Character):
+        batlog = "\n"
+        while self.hp > 0 or chara.health > 0:
+            tie = chara.speed == self.speed
+            if tie:
+                tie = random.choice([True,False])
+            if chara.speed > self.speed or tie:
+                self.hp -= round(chara.atk)
+                batlog = batlog + f"{chara.character} deals {round(chara.atk)} damage to {self.name}\n"
+                if self.hp <= 0:
+                    batlog = batlog + f"{chara.character} has defeated {self.name}\n"
+                    break
+                chara.health -= round((self.atk - (chara.defense)/3) * armorBuffs[chara.armor])
+                batlog = batlog + f"{self.name} deals {round((self.atk-(chara.defense)/3)*armorBuffs[chara.armor])} damage to {chara.character}\n"
+                if chara.health <= 0:
+                    batlog = batlog + f"{chara.character} has died to {self.name}. RIP :skull:\n\n"
+                    break
+            elif self.speed > chara.speed or not tie:
+                chara.health -= round((self.atk - (chara.defense)/3) * armorBuffs[chara.armor])
+                batlog = batlog + f"{self.name} deals {round((self.atk-(chara.defense)/3)*armorBuffs[chara.armor])} damage to {chara.character}\n"
+                if chara.health <= 0:
+                    batlog = batlog + f"{chara.character} has died to {self.name}. RIP :skull:\n\n"
+                    break
+                self.hp -= round(chara.atk)
+                batlog = batlog + f"{chara.character} deals {round(chara.atk)} damage to {self.name}\n"
+                if self.hp <= 0:
+                    batlog = batlog + f"{chara.character} has defeated {self.name}\n"
+                    break
+        #print(batlog)
+        if self.hp <= 0:
+            batlog = batlog + str(random.choices([f"{chara.character} found an ULTRA RARE GRAPHICS CARD!\n",f"{chara.character} found a " + str(random.choice(["keyboard", "monitor", "mouse"])) + "!\n",""],weights=[1,20,70])[0])
+        return batlog
+
 
 class LanguageC(Character):
     def __init__(self,vals=""):

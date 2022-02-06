@@ -12,7 +12,7 @@ from youtube_dl import YoutubeDL
 from discord.ext import commands
 from characters import Character as Charac
 from characters import LanguageC,LanguageJava,LanguagePython
-from playerView import getBoardEmbed, boardView
+from playerView import getBoardEmbed, boardView, getCampaignEmbed, campaignBoardView
 
 helpEmbed = discord.Embed(title="HELPPPPP", color=0xFFFFFF)
 helpEmbed.add_field(name='Command List:', value="hax.character\nhax.squashbugs\nhax.shop\nhax.buy\nhax.ping")
@@ -183,6 +183,16 @@ async def character(ctx: commands.Context, *args):
         print("Hello")
     curse.close()
     squelch.close()
+
+@client.command()
+async def tutorial(ctx: commands.Context):
+    try:
+        thing = fromInvGetChar(ctx.author.id)
+    except Exception:
+        await character(ctx)
+    cur = Charac(vals=thing[0])
+    embeda = getCampaignEmbed(ctx,cur,(0,0))
+    await ctx.send("",embed=embeda,view=campaignBoardView(ctx,cur))
 
 @client.command()
 async def squashbugs(ctx: commands.Context):
