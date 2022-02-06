@@ -23,9 +23,9 @@ import re
 # Weapons will be graphics cards
 # Armor will be monitors
 
-# C Base:       10HP 10DEF  7ATK 13SPD
+# C Base:       10HP 10DEF  7ATK 10SPD
 # Java Base:    12HP 10DEF  9ATK 10SPD
-# Python Base:   9HP 10DEF 12ATK  7SPD
+# Python Base:   9HP 10DEF 12ATK 10SPD
 
 def expToNextLevel(clevel):
     if clevel < 40:
@@ -38,15 +38,41 @@ def expToNextLevel(clevel):
 # \operatorname{floor}\left(\frac{101}{1+e^{-\frac{x}{29}}}-41\right)
 def hpScaling(level,lang):
     if lang == 'C':
-        return math.floor(100 / (1 + (math.e ** ( -1 * (level / 20)))) - 40)
+        if level < 80:
+            return math.floor(100 / (1 + (math.e ** ( -1 * (level / 20)))) - 40)
+        else:
+            return math.floor(0.2 * level + 43)
     elif lang == 'Java':
-        return math.floor(98 / (1 + (math.e ** (-1 * (level / 18)))) - 37)
+        if level < 100:
+            return math.floor(98 / (1 + (math.e ** (-1 * (level / 18)))) - 37)
+        else:
+            return math.floor(0.2 * level + 40)
     elif lang == 'Python':
-        return math.floor(101 / (1 + (math.e ** (-1 * (level / 29)))) - 41)
+        if level < 150:
+            return math.floor(101 / (1 + (math.e ** (-1 * (level / 29)))) - 41)
+        else:
+            return math.floor(0.2 * level + 30)
+
+def spdScaling(level):
+    if level < 150:
+        return round(math.e ** (level ** 0.3) + 9, 1)
+    else:
+        return (level ** (1/1.2)) + 34.58
 
 #\operatorname{floor}\left(4\left(e^{x^{0.21}}\right)+10\right)-4
 def defScaling(level):
     return math.floor(4 * (math.e ** (level ** 0.21)) + 10) - 4
+
+# \operatorname{floor}\left(\frac{\sqrt[0.35]{\ln\left(x+2\right)}\ln\left(x+2\right)}{6}+7\right)
+# \operatorname{floor}\left(\frac{\sqrt[0.35]{\ln\left(x+2\right)}\ln\left(x+2\right)}{5.4}+9\right)
+# \operatorname{floor}\left(\frac{\sqrt[0.35]{\ln\left(x+2\right)}\ln\left(x+2\right)}{5.3}+12\right)
+def atkScaling(level,lang):
+    if lang == 'C':
+        return math.floor((((math.log(level + 2) ** (1/0.35)) * math.log(level + 2)) / 6) + 7)
+    elif lang == 'Java':
+        return math.floor((((math.log(level + 2) ** (1/0.35)) * math.log(level + 2)) / 5.4) + 9)
+    elif lang == 'Python':
+        return math.floor((((math.log(level + 2) ** (1/0.35)) * math.log(level + 2)) / 5.3) + 12)
 
 class Character():
     def __init__(self,vals="",baseStats=""):
@@ -83,7 +109,9 @@ class Character():
             x -= expToNextLevel(self.level) - self.exp
             self.exp = 0
         self.exp += x
-
+        self.health = hpScaling(self.level,self.character)
+        self.defense = defScaling(self.level)
+        self.atk = atkScaling(self.level,self.character)
 
 class LanguageC(Character):
     def __init__(self,vals=""):
