@@ -114,7 +114,7 @@ async def character(ctx: commands.Context, *args):
             #print(traceback.format_exc())
             await ctx.send("Invalid User!")
             return
-    if thing != []:
+    if thing != [] and args == ():
         cur = Charac(vals=thing[0])
         if thing[0][-1] == 'C':
             url = "https://www.pngkit.com/png/detail/101-1010012_c-programming-icon-c-programming-language-logo.png"
@@ -125,11 +125,31 @@ async def character(ctx: commands.Context, *args):
         elif thing[0][-1] == 'n':
             url = "https://cdn-icons-png.flaticon.com/512/5968/5968350.png"
             charn = "Python"
+        gold = curse.execute(f"SELECT gold FROM invs WHERE uid={ctx.author.id}").fetchall()[0][0]
         embeda=discord.Embed(title="Character",description=f"<@{ctx.author.id}>'s {charn}")
         embeda.set_thumbnail(url=url)
         embeda.add_field(name="Stats", value=f"Max HP: **{cur.health}**\nDEF: **{cur.defense}**\nATK: **{cur.atk}**\nSTAM: **{cur.stamina}**\nSPD: **{cur.speed}**\nWeapon: **{cur.weapon}**\nArmor: **{cur.armor}**", inline=True)
-        embeda.set_footer(text=f"{cur.expDisplay()}")
+        embeda.set_footer(text=f"Gold: {gold}\n{cur.expDisplay()}")
         await ctx.send("",embed=embeda)
+        return
+    elif thing != []:
+        cur = Charac(vals=thing[0])
+        if thing[0][-1] == 'C':
+            url = "https://www.pngkit.com/png/detail/101-1010012_c-programming-icon-c-programming-language-logo.png"
+            charn = "C"
+        elif thing[0][-1] == 'a':
+            url = "https://cdn-icons-png.flaticon.com/512/226/226777.png"
+            charn = "Java"
+        elif thing[0][-1] == 'n':
+            url = "https://cdn-icons-png.flaticon.com/512/5968/5968350.png"
+            charn = "Python"
+        gold = curse.execute(f"SELECT gold FROM invs WHERE uid={int(args[0])}").fetchall()[0][0]
+        embeda=discord.Embed(title="Character",description=f"<@{int(args[0])}>'s {charn}")
+        embeda.set_thumbnail(url=url)
+        embeda.add_field(name="Stats", value=f"Max HP: **{cur.health}**\nDEF: **{cur.defense}**\nATK: **{cur.atk}**\nSTAM: **{cur.stamina}**\nSPD: **{cur.speed}**\nWeapon: **{cur.weapon}**\nArmor: **{cur.armor}**", inline=True)
+        embeda.set_footer(text=f"Gold: {gold}\n{cur.expDisplay()}")
+        await ctx.send("",embed=embeda)
+        return
     else:
         print("Hello")
 

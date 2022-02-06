@@ -1,4 +1,5 @@
 import math
+import random
 import re
 # Character is base for all classes
 # HP stat
@@ -117,12 +118,40 @@ class Character():
 
 class Enemy():
     def __init__(self, chara: Character, loc: tuple):
-        self.hp = 0
-        self.defense = 0
-        self.atk = 0
-        self.speed = 0
+        self.hp = math.floor(50 / (1 + math.e ** (-1 * (math.sqrt(loc[0] ** 2 + loc[1] ** 2) - 30) / 10)) + 7.639)
+        self.atk = math.floor(math.e ** ((math.sqrt(loc[0] ** 2 + loc[1] ** 2) + 10) ** 0.43) / 16 + 8.1)
+        self.speed = math.floor(20 / (1 + math.e ** (-1 * (math.sqrt(loc[0] ** 2 + loc[1] ** 2) - 30) / 23)) + 4)
     def fight(self, chara: Character):
-        pass
+        batlog = "\n"
+        while self.hp > 0 or chara.health > 0:
+            tie = chara.speed == self.speed
+            if tie:
+                tie = random.choice([True,False])
+            if chara.speed > self.speed or tie:
+                self.hp -= chara.atk
+                batlog = batlog + f"{chara.character} deals {chara.atk} damage to Bug\n"
+                if self.hp <= 0:
+                    batlog = batlog + f"{chara.character} has defeated Bug\n"
+                    break
+                chara.hp -= round(self.atk - (chara.defense)/3)
+                batlog = batlog + f"Bug deals {round(self.atk-(chara.defense)/3)} damage to {chara.character}\n"
+                if chara.health <= 0:
+                    batlog = batlog + f"{chara.character} has died to Bug. RIP :skull:\n\n"
+                    break
+            elif self.speed > chara.speed or not tie:
+                chara.health -= round(self.atk - (chara.defense)/3)
+                batlog = batlog + f"Bug deals {round(self.atk-(chara.defense)/3)} damage to {chara.character}\n"
+                if chara.health <= 0:
+                    batlog = batlog + f"{chara.character} has died to Bug. RIP :skull:\n\n"
+                    break
+                self.hp -= chara.atk
+                batlog = batlog + f"{chara.character} deals {chara.atk} damage to Bug\n"
+                if self.hp <= 0:
+                    batlog = batlog + f"{chara.character} has defeated Bug\n"
+                    break
+        print(batlog)
+        return batlog
+
 
 class LanguageC(Character):
     def __init__(self,vals=""):

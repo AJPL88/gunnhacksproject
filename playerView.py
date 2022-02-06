@@ -1,4 +1,5 @@
 import random
+import re
 import discord
 import math
 import asyncio
@@ -11,7 +12,7 @@ sprites = {
     'W': ':black_medium_square:',
     'O': ':white_medium_square:',
     'C': ':heart:',
-    'E': ':zombie:'
+    'E': ':beetle:'
 }
 
 # W: wall
@@ -20,9 +21,9 @@ sprites = {
 # C: chest
 
 def getBars(percentage, numcharas):
-    return '[' + '=' * round(percentage * numcharas) + ' ' * (numcharas-round(percentage*numcharas)) + ']'
+    return '`[' + '=' * round(percentage * numcharas) + '\xa0' * (numcharas-round(percentage*numcharas)) + ']`'
 
-def getBoardEmbed(ctx: commands.Context, chara: Character, charaPos: tuple, board: dict, failed = False):
+def getBoardEmbed(ctx: commands.Context, chara: Character, charaPos: tuple, board: dict, failed = False, log = "", bugs = 0):
     if not failed:
         cur = ''
         for i in range(-3,4):
@@ -32,11 +33,14 @@ def getBoardEmbed(ctx: commands.Context, chara: Character, charaPos: tuple, boar
                 else:
                     cur = cur + sprites[board[(charaPos[0]+i,charaPos[1]+j)]]
             cur = cur + '\n'
-        embeda = discord.Embed(title="Test Game", description=f"HP: {chara.health}/{hpScaling(chara.level,chara.character)}\n{getBars(chara.health / hpScaling(chara.level,chara.character), 15)}\n" + cur, color=0xFF0000)
+        cur = cur + log
+        embeda = discord.Embed(title="Debugger", description=f"HP: {chara.health}/{hpScaling(chara.level,chara.character)}\n{getBars(chara.health / hpScaling(chara.level,chara.character), 15)}\n" + cur, color=0xFF0000)
         embeda.set_footer(text=f"{chara.expDisplay()}")
         return embeda
     else:
-        embeda = discord.Embed(title="Test game", description=f"HP: {chara.health}/{hpScaling(chara.level,chara.character)}\n{getBars(0,15)}\n**__RUN FAILED__**\nExp Gained: xxx", color = 0x000000)
+        cur = log
+        print(cur)
+        embeda = discord.Embed(title="Debugger", description=f"HP: {chara.health}/{hpScaling(chara.level,chara.character)}\n{getBars(0,15)}\n{cur}**__RUN FAILED__**\nExp Gained: {0}\nGold Gained: {0}\nBugs Squashed: {bugs}", color = 0x000000)
         embeda.set_footer(text=f"{chara.expDisplay()}")
         return embeda
 
@@ -80,9 +84,9 @@ class boardButton(discord.ui.Button['boardView']):
             view.add_item(boardButton(0,1,'w','w' not in view.validmoves))
             view.add_item(boardButton(1,1,'d','d' not in view.validmoves))
             view.add_item(boardButton(2,1,'s','s' not in view.validmoves))
-            await interaction.response.edit_message(content='',embed=getBoardEmbed(view.ctx, view.charac, view.charaPosition, view.board),view=view)
+            await interaction.response.edit_message(content='',embed=getBoardEmbed(view.ctx, view.charac, view.charaPosition, view.board, log=view.batlog),view=view)
         else:
-            await interaction.response.edit_message(content='',embed=getBoardEmbed(view.ctx, view.charac, view.charaPosition, view.board, failed=True),view=view)
+            await interaction.response.edit_message(content='',embed=getBoardEmbed(view.ctx, view.charac, view.charaPosition, view.board, failed=True, log=view.batlog, bugs=view.bugsSquashed),view=view)
 
 
 """
@@ -115,6 +119,8 @@ class boardView(discord.ui.View):
         self.charac = chara
         self.charaPosition = (0,0)
         self.ctx = ctx
+        self.batlog = ""
+        self.bugsSquashed = 0
         
         # t: attack
         # i: interact
@@ -130,6 +136,7 @@ class boardView(discord.ui.View):
         self.add_item(boardButton(1,1,'d','d' not in self.validmoves))
         self.add_item(boardButton(2,1,'s','s' not in self.validmoves))
     def updateBoard(self, move):
+        self.batlog = ""
         if move == 'w':
             self.charaPosition = (self.charaPosition[0], self.charaPosition[1] - 1)
         elif move == 'a':
@@ -148,8 +155,11 @@ class boardView(discord.ui.View):
                 enemyLoc = (self.charaPosition[0], self.charaPosition[1] + 1)
             elif enemyLoc == 3:
                 enemyLoc = (self.charaPosition[0], self.charaPosition[1] - 1)
-            Enemy(self.charac,enemyLoc).fight(self.charac)
-        elif move == 'e':
+            self.batlog = Enemy(self.charac,enemyLoc).fight(self.charac)
+            if self.charac.health > 0:
+                self.board[enemyLoc] = 'O'
+                self.bugsSquashed += 1
+        elif move == 'i':
             chestLoc = [self.board[(self.charaPosition[0]+1,self.charaPosition[1])], self.board[(self.charaPosition[0]-1,self.charaPosition[1])], self.board[(self.charaPosition[0],self.charaPosition[1]+1)], self.board[(self.charaPosition[0],self.charaPosition[1]-1)]].index('C')
             if chestLoc == 0:
                 chestLoc = (self.charaPosition[0] + 1, self.charaPosition[1])
@@ -170,7 +180,7 @@ class boardView(discord.ui.View):
             for j in range(-3,4):
                 if (self.charaPosition[0]+i,self.charaPosition[1]+j) not in self.board.keys():
                     if abs(self.charaPosition[0] + i) < 25 and abs(self.charaPosition[1] + j) < 25:
-                        self.board[(self.charaPosition[0]+i,self.charaPosition[1]+j)] = random.choices(['W','O','E'],weights=[3,5,2],k=1)[0]
+                        self.board[(self.charaPosition[0]+i,self.charaPosition[1]+j)] = random.choices(['W','O','E','C'],weights=[3,5,2,2],k=1)[0]
                     else:
                         self.board[(self.charaPosition[0]+i,self.charaPosition[1]+j)] = 'W'
         self.validmoves = getValid(self.charaPosition,self.board)
