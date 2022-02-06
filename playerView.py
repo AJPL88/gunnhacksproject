@@ -6,11 +6,12 @@ import asyncio
 import traceback
 from typing import List
 from discord.ext import commands
+import sqlite3
 from characters import Character,hpScaling,Enemy
 
 sprites = {
-    'W': ':black_medium_square:',
-    'O': ':white_medium_square:',
+    'W': ':white_medium_square:',
+    'O': ':black_medium_square:',
     'C': ':heart:',
     'E': ':beetle:'
 }
@@ -23,7 +24,7 @@ sprites = {
 def getBars(percentage, numcharas):
     return '`[' + '=' * round(percentage * numcharas) + '\xa0' * (numcharas-round(percentage*numcharas)) + ']`'
 
-def getBoardEmbed(ctx: commands.Context, chara: Character, charaPos: tuple, board: dict, failed = False, log = "", bugs = 0):
+def getBoardEmbed(ctx: commands.Context, chara: Character, charaPos: tuple, board: dict, failed = False, log = "", bugs = 0, wb = 0, gold = 0, exp = 0):
     if not failed:
         cur = ''
         for i in range(-3,4):
@@ -34,13 +35,15 @@ def getBoardEmbed(ctx: commands.Context, chara: Character, charaPos: tuple, boar
                     cur = cur + sprites[board[(charaPos[0]+i,charaPos[1]+j)]]
             cur = cur + '\n'
         cur = cur + log
+        if wb not in [0,False]:
+            cur = f'Weapon Bonus! ATK +{round(1.1 ** wb - 1, 2)*100}%\n' + cur
         embeda = discord.Embed(title="Debugger", description=f"HP: {chara.health}/{hpScaling(chara.level,chara.character)}\n{getBars(chara.health / hpScaling(chara.level,chara.character), 15)}\n" + cur, color=0xFF0000)
         embeda.set_footer(text=f"{chara.expDisplay()}")
         return embeda
     else:
         cur = log
-        print(cur)
-        embeda = discord.Embed(title="Debugger", description=f"HP: {chara.health}/{hpScaling(chara.level,chara.character)}\n{getBars(0,15)}\n{cur}**__RUN FAILED__**\nExp Gained: {0}\nGold Gained: {0}\nBugs Squashed: {bugs}", color = 0x000000)
+        #print(cur)
+        embeda = discord.Embed(title="Debugger", description=f"HP: {chara.health}/{hpScaling(chara.level,chara.character)}\n{getBars(0,15)}\n{cur}**__RUN FAILED__**\nExp Gained: {exp}\nGold Gained: {gold}\nBugs Squashed: {bugs}", color = 0x000000)
         embeda.set_footer(text=f"{chara.expDisplay()}")
         return embeda
 
@@ -84,9 +87,27 @@ class boardButton(discord.ui.Button['boardView']):
             view.add_item(boardButton(0,1,'w','w' not in view.validmoves))
             view.add_item(boardButton(1,1,'d','d' not in view.validmoves))
             view.add_item(boardButton(2,1,'s','s' not in view.validmoves))
-            await interaction.response.edit_message(content='',embed=getBoardEmbed(view.ctx, view.charac, view.charaPosition, view.board, log=view.batlog),view=view)
+            if 't' in view.validmoves:
+                asdfadsf = Enemy(view.charac,view.charaPosition)
+                view.batlog = f"Enemy Details:\nHP: {asdfadsf.hp}, ATK: {asdfadsf.atk}, SPD: {asdfadsf.speed}\n" + view.batlog
+            await interaction.response.edit_message(content='',embed=getBoardEmbed(view.ctx, view.charac, view.charaPosition, view.board, log=view.batlog, wb=view.weaponBonus),view=view)
         else:
-            await interaction.response.edit_message(content='',embed=getBoardEmbed(view.ctx, view.charac, view.charaPosition, view.board, failed=True, log=view.batlog, bugs=view.bugsSquashed),view=view)
+            coins = 0
+            exp = 0
+            for i in range(view.bugsSquashed):
+                coins += random.randint(4,7)
+                exp += random.randint(5,15)
+            view.charac.addExp(exp)
+            print(view.charac.expDisplay())
+            squelch = sqlite3.connect('inventories.db')
+            curse = squelch.cursor()
+            curse.execute(f"UPDATE invs SET stuff='{view.charac.getStorageStr()}' WHERE uid={view.ctx.author.id}")
+            pgold = curse.execute(f"SELECT gold FROM invs WHERE uid={view.ctx.author.id}").fetchall()[0][0]
+            curse.execute(f"UPDATE invs SET gold={pgold + coins} WHERE uid={view.ctx.author.id}")
+            squelch.commit()
+            curse.close()
+            squelch.close()
+            await interaction.response.edit_message(content='',embed=getBoardEmbed(view.ctx, view.charac, view.charaPosition, view.board, failed=True, log=view.batlog, bugs=view.bugsSquashed, gold=coins, exp=exp),view=view)
 
 
 """
@@ -115,12 +136,16 @@ class boardView(discord.ui.View):
     children: List[boardButton]
     def __init__(self, ctx: commands.Context, chara: Character, board: dict):
         super().__init__()
+        #self.squelch = sqlite3.connect("inventories.db")
+        #self.curse = self.squelch.cursor()
         self.board = board
         self.charac = chara
         self.charaPosition = (0,0)
         self.ctx = ctx
         self.batlog = ""
         self.bugsSquashed = 0
+        self.weaponBonus = 0
+        self.enemyInfo = ""
         
         # t: attack
         # i: interact
@@ -159,6 +184,11 @@ class boardView(discord.ui.View):
             if self.charac.health > 0:
                 self.board[enemyLoc] = 'O'
                 self.bugsSquashed += 1
+                if "ULTRA RARE" in self.batlog:
+                    self.charac.weapon = random.choice(['RTX3090','RTX3080Ti','RX6900XT','RX6800XT','RTX3080','RX6800','RTX3070Ti'])
+                elif "found a " in self.batlog:
+                    self.weaponBonus += 1
+                    self.charac.atk *= 1.1
         elif move == 'i':
             chestLoc = [self.board[(self.charaPosition[0]+1,self.charaPosition[1])], self.board[(self.charaPosition[0]-1,self.charaPosition[1])], self.board[(self.charaPosition[0],self.charaPosition[1]+1)], self.board[(self.charaPosition[0],self.charaPosition[1]-1)]].index('C')
             if chestLoc == 0:
@@ -175,6 +205,8 @@ class boardView(discord.ui.View):
                 self.charac.health = hpScaling(self.charac.level,self.charac.character)
         if self.charac.health <= 0:
             self.stop()
+            #self.curse.close()
+            #self.squelch.close()
             return False
         for i in range(-3,4):
             for j in range(-3,4):
