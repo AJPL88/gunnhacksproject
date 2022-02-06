@@ -69,32 +69,32 @@ async def character(ctx: commands.Context, *args):
                 rep = await client.wait_for("message", check = lambda x: x.author.id == ctx.author.id and x.channel.id == ctx.channel.id, timeout = 30.0)
             except asyncio.TimeoutError:
                 return
-            if rep.lower() in ['yes','y']:
+            if rep.content.lower() in ['yes','y']:
                 embeda = discord.Embed(title="Character Selection", description = "Languages to choose from: \n_:one:: C_\nHP: 12, DEF: 10, ATK: 7, SPD: 10\n_:two:: Java_\nHP: 10, DEF: 10, ATK: 9, SPD: 10\n_:three:: Python_\nHP: 9, DEF: 10, ATK: 12, SPD: 10", color=0x00FF00)
                 ms = await ctx.send("",embed=embeda)
                 await asyncio.sleep(1)
-                await ms.add_reaction("\{ONE}")
+                await ms.add_reaction("\u0031\uFE0F\u20E3")
                 await asyncio.sleep(0.5)
-                await ms.add_reaction("\{TWO}")
+                await ms.add_reaction("\u0032\uFE0F\u20E3")
                 await asyncio.sleep(0.5)
-                await ms.add_reaction("\{THREE}")
+                await ms.add_reaction("\u0033\uFE0F\u20E3")
                 try:
-                    reac, userr = await client.wait_for("reaction_add", check=lambda r,u: str(r.emoji) in ['1️⃣','2️⃣','3️⃣'] and u.id == ctx.author.id and r.message.id == ms.id, timeout = 30.0)
+                    reac, userr = await client.wait_for("reaction_add", check=lambda r,u: str(r.emoji) in ['\u0031\uFE0F\u20E3','\u0032\uFE0F\u20E3','\u0033\uFE0F\u20E3'] and u.id == ctx.author.id and r.message.id == ms.id, timeout = 30.0)
                 except asyncio.TimeoutError:
                     return
-                if str(reac.emoji) == '3️⃣':
+                if str(reac.emoji) == '\u0033\uFE0F\u20E3':
                     cur = LanguagePython()
                     curse.execute(f"INSERT INTO invs VALUES ({userr.id}, 0, '{cur.getStorageStr()}')")
                     squelch.commit()
                     await character(ctx)
                     return
-                elif str(reac.emoji) == '2️⃣':
+                elif str(reac.emoji) == '\u0032\uFE0F\u20E3':
                     cur = LanguageJava()
                     curse.execute(f"INSERT INTO invs VALUES ({userr.id}, 0, '{cur.getStorageStr()}')")
                     squelch.commit()
                     await character(ctx)
                     return
-                elif str(reac.emoji) == '1️⃣':
+                elif str(reac.emoji) == '\u0031\uFE0F\u20E3':
                     cur = LanguageC()
                     curse.execute(f"INSERT INTO invs VALUES ({userr.id}, 0, '{cur.getStorageStr()}')")
                     squelch.commit()
