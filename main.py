@@ -78,6 +78,29 @@ async def character(ctx: commands.Context, *args):
                 await ms.add_reaction("\{TWO}")
                 await asyncio.sleep(0.5)
                 await ms.add_reaction("\{THREE}")
+                try:
+                    reac, userr = await client.wait_for("reaction_add", check=lambda r,u: str(r.emoji) in ['1️⃣','2️⃣','3️⃣'] and u.id == ctx.author.id and r.message.id == ms.id, timeout = 30.0)
+                except asyncio.TimeoutError:
+                    return
+                if str(reac.emoji) == '3️⃣':
+                    cur = LanguagePython()
+                    curse.execute(f"INSERT INTO invs VALUES ({userr.id}, 0, '{cur.getStorageStr()}')")
+                    squelch.commit()
+                    await character(ctx)
+                    return
+                elif str(reac.emoji) == '2️⃣':
+                    cur = LanguageJava()
+                    curse.execute(f"INSERT INTO invs VALUES ({userr.id}, 0, '{cur.getStorageStr()}')")
+                    squelch.commit()
+                    await character(ctx)
+                    return
+                elif str(reac.emoji) == '1️⃣':
+                    cur = LanguageC()
+                    curse.execute(f"INSERT INTO invs VALUES ({userr.id}, 0, '{cur.getStorageStr()}')")
+                    squelch.commit()
+                    await character(ctx)
+                    return
+                return
             else:
                 return
     else:
