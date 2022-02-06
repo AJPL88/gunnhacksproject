@@ -18,7 +18,12 @@ import re
 # Every 10 levels, ascension: 
 
 # Data Storage:
-# string: LEVEL$EXP$HP$DEF$ATK$STAMINA$SPEED$WEAPON$ARMOR
+# string: LEVEL$EXP$HP$DEF$ATK$STAMINA$SPEED$WEAPON$ARMOR$CHARACTER
+# Weapons will be graphics cards
+
+# C Base:       10HP 10DEF  7ATK 13SPD
+# Java Base:    12HP 10DEF  9ATK 10SPD
+# Python Base:   9HP 10DEF 12ATK  7SPD
 
 def expToNextLevel(clevel):
     return round((5000 / (1 + ( 2.7182818285 ** ( -1 * (clevel-40)/10)))) + 10.069)
@@ -36,6 +41,7 @@ class Character():
             self.speed = int(los[6])
             self.weapon = los[7]
             self.armor = los[8]
+            self.character = los[9]
         else:
             self.level = 1
             self.exp = 0
@@ -48,3 +54,7 @@ class Character():
             self.armor = "none"
     def getStorageStr(self):
         return '$'.join(map(str, [self.level, self.exp, self.health, self.defense, self.atk, self.stamina, self.speed, self.weapon, self.armor]))
+
+class Warrior(Character):
+    def __init__(self,vals=""):
+        super().__init__(vals=vals,baseStats=[1])
