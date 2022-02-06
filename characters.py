@@ -50,7 +50,7 @@ def hpScaling(level,lang):
             return math.floor(0.2 * level + 40)
     elif lang == 'Python':
         if level < 150:
-            return math.floor(101 / (1 + (math.e ** (-1 * (level / 29)))) - 41)
+            return math.floor(101 / (1 + (math.e ** (-1 * ((level-1) / 29)))) - 41)
         else:
             return math.floor(0.2 * level + 30)
 
@@ -114,6 +114,15 @@ class Character():
         self.defense = defScaling(self.level)
         self.atk = atkScaling(self.level,self.character)
         self.speed = spdScaling(self.level)
+
+class Enemy():
+    def __init__(self, chara: Character, loc: tuple):
+        self.hp = 0
+        self.defense = 0
+        self.atk = 0
+        self.speed = 0
+    def fight(self, chara: Character):
+        pass
 
 class LanguageC(Character):
     def __init__(self,vals=""):

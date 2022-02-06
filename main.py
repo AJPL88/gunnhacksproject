@@ -1,3 +1,4 @@
+import random
 import discord
 import os
 import math
@@ -10,6 +11,7 @@ from youtube_dl import YoutubeDL
 from discord.ext import commands
 from characters import Character as Charac
 from characters import LanguageC,LanguageJava,LanguagePython
+from playerView import getBoardEmbed, boardView
 
 class hackBot(commands.Bot):
     def __init__(self):
@@ -130,6 +132,22 @@ async def character(ctx: commands.Context, *args):
         await ctx.send("",embed=embeda)
     else:
         print("Hello")
+
+@client.command()
+async def testplay(ctx: commands.Context):
+    thing = fromInvGetChar(ctx.author.id)
+    cur = Charac(vals=thing[0])
+    board = {}
+    for i in range(-3, 4):
+        for j in range(-3, 4):
+            if (i,j) != (0,0):
+                board[(i,j)] = random.choices(['W','O','E'],weights=[1,7,2],k=1)[0]
+    for i in [-1,0,1]:
+        for j in [-1,0,1]:
+            board[(i,j)] = 'O'
+    embeda = getBoardEmbed(ctx, cur, (0,0), board)
+    #await ctx.send("",embed=embeda,view=boardView(ctx,cur,board))
+    await ctx.send("",embed=embeda)
 
 @client.command()
 async def adminsetchar(ctx: commands.Context, uid: str, val: str):
