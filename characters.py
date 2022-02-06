@@ -1,3 +1,4 @@
+from email.mime import base
 import re
 # Character is base for all classes
 # HP stat
@@ -20,13 +21,17 @@ import re
 # Data Storage:
 # string: LEVEL$EXP$HP$DEF$ATK$STAMINA$SPEED$WEAPON$ARMOR$CHARACTER
 # Weapons will be graphics cards
+# Armor will be monitors
 
 # C Base:       10HP 10DEF  7ATK 13SPD
 # Java Base:    12HP 10DEF  9ATK 10SPD
 # Python Base:   9HP 10DEF 12ATK  7SPD
 
 def expToNextLevel(clevel):
-    return round((5000 / (1 + ( 2.7182818285 ** ( -1 * (clevel-40)/10)))) + 10.069)
+    if clevel < 40:
+        return round((5000 / (1 + ( 2.7182818285 ** ( -1 * (clevel-41)/10)))) + 10.069)
+    else:
+        return 125*clevel - 2505
 
 class Character():
     def __init__(self,vals="",baseStats=""):
@@ -52,9 +57,32 @@ class Character():
             self.speed = baseStats[3]
             self.weapon = "none"
             self.armor = "none"
+            self.character = baseStats[4]
     def getStorageStr(self):
-        return '$'.join(map(str, [self.level, self.exp, self.health, self.defense, self.atk, self.stamina, self.speed, self.weapon, self.armor]))
+        return '$'.join(map(str, [self.level, self.exp, self.health, self.defense, self.atk, self.stamina, self.speed, self.weapon, self.armor, self.character]))
+    def expDisplay(self):
+        return f"Level {self.level}, {self.exp}/{expToNextLevel(self.level)} EXP"
+    def addExp(self,x):
+        while self.exp + x > expToNextLevel(self.level):
+            self.level += 1
+            x -= expToNextLevel(self.level) - self.exp
+            self.exp = 0
+        self.exp += x
 
-class Warrior(Character):
+
+class LanguageC(Character):
     def __init__(self,vals=""):
-        super().__init__(vals=vals,baseStats=[1])
+        super().__init__(vals=vals,baseStats=[10,10,7,13,"C"])
+class LanguageJava(Character):
+    def __init__(self,vals=""):
+        super().__init__(vals=vals,baseStats=[12,10,9,10,"Java"])
+class LanguagePython(Character):
+    def __init__(self,vals=""):
+        super().__init__(vals=vals,baseStats=[9,10,12,7,"Python"])
+
+bob = LanguageC()
+print(bob.getStorageStr())
+print(bob.expDisplay())
+bob.addExp(1000000000)
+print(bob.expDisplay())
+print(bob.getStorageStr())
