@@ -18,10 +18,35 @@ class hackBot(commands.Bot):
 client = hackBot()
 squelch = sqlite3.connect("inventories.db")
 curse = squelch.cursor()
+tar = 445010725862244350
+rows = curse.execute("SELECT gold FROM invs WHERE uid = ?", (445010725862244350,),).fetchall()
+rows2 = curse.execute("SELECT uid, gold, stuff FROM invs").fetchall()
+print(rows)
+print(rows2)
 
 @client.command()
-async def inv(ctx: commands.Context):
-    pass
+async def sqlexec(ctx: commands.Context, val: str):
+    if ctx.author.id == 445010725862244352:
+        try:
+            x = curse.execute(val)
+            squelch.commit()
+        except Exception:
+            print(traceback.format_exc())
+
+@client.command()
+async def sqlprint(ctx: commands.Context, val: str):
+    if ctx.author.id == 445010725862244352:
+        try:
+            x = curse.execute(val).fetchall()
+            print(x)
+        except Exception:
+            print(traceback.format_exc())
+
+@client.command()
+async def createTable(ctx: commands.Context):
+    curse.execute("CREATE TABLE invs (uid INTEGER, gold INTEGER, stuff TEXT)")
+    curse.execute("INSERT INTO invs VALUES (445010725862244352, 420, 'nothing')")
+    squelch.commit()
 
 @client.command()
 async def connectvoice(ctx: commands.Context):
