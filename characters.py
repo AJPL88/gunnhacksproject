@@ -27,6 +27,7 @@ import re
 # Java Base:    12HP 10DEF  9ATK 10SPD
 # Python Base:   9HP 10DEF 12ATK 10SPD
 
+# SCALING IS PAINNNN
 def expToNextLevel(clevel):
     if clevel < 40:
         return round((5000 / (1 + (math.e ** ( -1 * (clevel-41)/10)))) + 10.069)
@@ -57,7 +58,7 @@ def spdScaling(level):
     if level < 150:
         return round(math.e ** (level ** 0.3) + 9, 1)
     else:
-        return (level ** (1/1.2)) + 34.58
+        return round((level ** (1/1.2)) + 34.58, 1)
 
 #\operatorname{floor}\left(4\left(e^{x^{0.21}}\right)+10\right)-4
 def defScaling(level):
@@ -112,6 +113,7 @@ class Character():
         self.health = hpScaling(self.level,self.character)
         self.defense = defScaling(self.level)
         self.atk = atkScaling(self.level,self.character)
+        self.speed = spdScaling(self.level)
 
 class LanguageC(Character):
     def __init__(self,vals=""):
