@@ -72,17 +72,17 @@ class boardButton(discord.ui.Button['boardView']):
         view = self.view
         state = view.butlist[self.y][self.x]
         view.updateBoard(state)
-        #view.clear_items()
+        view.clear_items()
         if view.charac.health > 0:
-            '''view.add_item(boardButton(0,0,'t','E' not in [view.board[(view.charaPosition[0]+1,view.charaPosition[1])], view.board[(view.charaPosition[0]-1,view.charaPosition[1])], view.board[(view.charaPosition[0],view.charaPosition[1]+1)], view.board[(view.charaPosition[0],view.charaPosition[1]-1)]]))
-            view.add_item(boardButton(1,0,'w',view.board[(view.charaPosition[0],view.charaPosition[1]-1)] != 'O'))
-            view.add_item(boardButton(2,0,'i','C' not in [view.board[(view.charaPosition[0]+1,view.charaPosition[1])], view.board[(view.charaPosition[0]-1,view.charaPosition[1])], view.board[(view.charaPosition[0],view.charaPosition[1]+1)], view.board[(view.charaPosition[0],view.charaPosition[1]-1)]]))
-            view.add_item(boardButton(0,1,'a',view.board[(view.charaPosition[0]-1,view.charaPosition[1])] != 'O'))
-            view.add_item(boardButton(1,1,'s',view.board[(view.charaPosition[0],view.charaPosition[1]+1)] != 'O'))
-            view.add_item(boardButton(2,1,'d',view.board[(view.charaPosition[0]+1,view.charaPosition[1])] != 'O'))'''
-            await interaction.response.edit_message(content='',embed=getBoardEmbed(view.ctx, view.charac, view.charaPosition, view.board))
+            view.add_item(boardButton(0,0,'t','t' not in view.validmoves))
+            view.add_item(boardButton(1,0,'a','a' not in view.validmoves))
+            view.add_item(boardButton(2,0,'i','i' not in view.validmoves))
+            view.add_item(boardButton(0,1,'w','w' not in view.validmoves))
+            view.add_item(boardButton(1,1,'d','d' not in view.validmoves))
+            view.add_item(boardButton(2,1,'s','s' not in view.validmoves))
+            await interaction.response.edit_message(content='',embed=getBoardEmbed(view.ctx, view.charac, view.charaPosition, view.board),view=view)
         else:
-            await interaction.response.edit_message(content='',embed=getBoardEmbed(view.ctx, view.charac, view.charaPosition, view.board, failed=True))
+            await interaction.response.edit_message(content='',embed=getBoardEmbed(view.ctx, view.charac, view.charaPosition, view.board, failed=True),view=view)
 
 
 """
@@ -124,11 +124,11 @@ class boardView(discord.ui.View):
         ]
         self.validmoves = getValid(self.charaPosition,self.board)
         self.add_item(boardButton(0,0,'t','t' not in self.validmoves))
-        self.add_item(boardButton(1,0,'w','w' not in self.validmoves))
+        self.add_item(boardButton(1,0,'a','a' not in self.validmoves))
         self.add_item(boardButton(2,0,'i','i' not in self.validmoves))
-        self.add_item(boardButton(0,1,'a','a' not in self.validmoves))
-        self.add_item(boardButton(1,1,'s','s' not in self.validmoves))
-        self.add_item(boardButton(2,1,'d','d' not in self.validmoves))
+        self.add_item(boardButton(0,1,'w','w' not in self.validmoves))
+        self.add_item(boardButton(1,1,'d','d' not in self.validmoves))
+        self.add_item(boardButton(2,1,'s','s' not in self.validmoves))
     def updateBoard(self, move):
         if move == 'w':
             self.charaPosition = (self.charaPosition[0], self.charaPosition[1] - 1)
@@ -148,7 +148,7 @@ class boardView(discord.ui.View):
                 enemyLoc = (self.charaPosition[0], self.charaPosition[1] + 1)
             elif enemyLoc == 3:
                 enemyLoc = (self.charaPosition[0], self.charaPosition[1] - 1)
-            self.charac.fight(Enemy(self.charac,enemyLoc))
+            Enemy(self.charac,enemyLoc).fight(self.charac)
         elif move == 'e':
             chestLoc = [self.board[(self.charaPosition[0]+1,self.charaPosition[1])], self.board[(self.charaPosition[0]-1,self.charaPosition[1])], self.board[(self.charaPosition[0],self.charaPosition[1]+1)], self.board[(self.charaPosition[0],self.charaPosition[1]-1)]].index('C')
             if chestLoc == 0:
@@ -169,12 +169,8 @@ class boardView(discord.ui.View):
         for i in range(-3,4):
             for j in range(-3,4):
                 if (self.charaPosition[0]+i,self.charaPosition[1]+j) not in self.board.keys():
-                    self.board[(self.charaPosition[0]+i,self.charaPosition[1]+j)] = random.choices(['W','O','E'],weights=[3,5,2],k=1)[0]
+                    if abs(self.charaPosition[0] + i) < 25 and abs(self.charaPosition[1] + j) < 25:
+                        self.board[(self.charaPosition[0]+i,self.charaPosition[1]+j)] = random.choices(['W','O','E'],weights=[3,5,2],k=1)[0]
+                    else:
+                        self.board[(self.charaPosition[0]+i,self.charaPosition[1]+j)] = 'W'
         self.validmoves = getValid(self.charaPosition,self.board)
-        self.clear_items()
-        #self.add_item(boardButton(0,0,'t','t' not in self.validmoves))
-        #self.add_item(boardButton(1,0,'w','w' not in self.validmoves))
-        #self.add_item(boardButton(2,0,'i','i' not in self.validmoves))
-        #self.add_item(boardButton(0,1,'a','a' not in self.validmoves))
-        #self.add_item(boardButton(1,1,'s','s' not in self.validmoves))
-        #self.add_item(boardButton(2,1,'d','d' not in self.validmoves))

@@ -134,9 +134,9 @@ class LanguagePython(Character):
     def __init__(self,vals=""):
         super().__init__(vals=vals,baseStats=[9,10,12,7,"Python"])
 
-bob = LanguageC()
+'''bob = LanguageC()
 print(bob.getStorageStr())
 print(bob.expDisplay())
 bob.addExp(1000000000)
 print(bob.expDisplay())
-print(bob.getStorageStr())
+print(bob.getStorageStr())'''
