@@ -58,9 +58,55 @@ async def connectvoice(ctx: commands.Context):
     voice = discord.utils.get(client.voice_clients, guild = ctx.guild)
 
 @client.command()
-async def character(ctx: commands.Context):
-    #await ctx.send(fromInvGetChar(ctx.author.id)[0])
-    embeda = discord.Embed(title=f"<@{ctx.author.id}>'s Character", description="")
+async def character(ctx: commands.Context, *args):
+    print(args)
+    if args == ():
+        try:
+            thing = fromInvGetChar(ctx.author.id)
+        except IndexError:
+            await ctx.send("You don't have a character yet! Would you like to create one? (Yes/No)")
+            try:
+                rep = await client.wait_for("message", check = lambda x: x.author.id == ctx.author.id and x.channel.id == ctx.channel.id, timeout = 30.0)
+            except asyncio.TimeoutError:
+                return
+            if rep.lower() in ['yes','y']:
+                embeda = discord.Embed(title="Character Selection", description = "Languages to choose from: \n_:one:: C_\nHP: 12, DEF: 10, ATK: 7, SPD: 10\n_:two:: Java_\nHP: 10, DEF: 10, ATK: 9, SPD: 10\n_:three:: Python_\nHP: 9, DEF: 10, ATK: 12, SPD: 10", color=0x00FF00)
+                ms = await ctx.send("",embed=embeda)
+                await asyncio.sleep(1)
+                await ms.add_reaction("\{ONE}")
+                await asyncio.sleep(0.5)
+                await ms.add_reaction("\{TWO}")
+                await asyncio.sleep(0.5)
+                await ms.add_reaction("\{THREE}")
+            else:
+                return
+    else:
+        try:
+            thing = fromInvGetChar(int(args[0]))
+        except IndexError:
+            await ctx.send("User does not exist or has no character!")
+        except Exception:
+            #print(traceback.format_exc())
+            await ctx.send("Invalid User!")
+            return
+    if thing != []:
+        cur = Charac(vals=thing[0])
+        if thing[0][-1] == 'C':
+            url = "https://www.pngkit.com/png/detail/101-1010012_c-programming-icon-c-programming-language-logo.png"
+            charn = "C"
+        elif thing[0][-1] == 'a':
+            url = "https://cdn-icons-png.flaticon.com/512/226/226777.png"
+            charn = "Java"
+        elif thing[0][-1] == 'n':
+            url = "https://cdn-icons-png.flaticon.com/512/5968/5968350.png"
+            charn = "Python"
+        embeda=discord.Embed(title="Character",description=f"<@{ctx.author.id}>'s {charn}")
+        embeda.set_thumbnail(url=url)
+        embeda.add_field(name="Stats", value=f"Max HP: **{cur.health}**\nDEF: **{cur.defense}**\nATK: **{cur.atk}**\nSTAM: **{cur.stamina}**\nSPD: **{cur.speed}**\nWeapon: **{cur.weapon}**\nArmor: **{cur.armor}**", inline=True)
+        embeda.set_footer(text=f"{cur.expDisplay()}")
+        await ctx.send("",embed=embeda)
+    else:
+        print("Hello")
 
 @client.command()
 async def adminsetchar(ctx: commands.Context, uid: str, val: str):

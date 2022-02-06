@@ -103,7 +103,7 @@ class Character():
     def getStorageStr(self):
         return '$'.join(map(str, [self.level, self.exp, self.health, self.defense, self.atk, self.stamina, self.speed, self.weapon, self.armor, self.character]))
     def expDisplay(self):
-        return f"Level {self.level}, {self.exp}/{expToNextLevel(self.level)} EXP"
+        return f"Level {self.level}\n{self.exp}/{expToNextLevel(self.level)} EXP"
     def addExp(self,x):
         while self.exp + x > expToNextLevel(self.level):
             self.level += 1
